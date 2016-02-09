@@ -2,6 +2,24 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "localGatewayIpAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Public IP of your on-premise gateway"
+      }
+    },
+    "localAddressPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Public IP of your on-premise gateway"
+      }
+    },
+    "sharedKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "IKE shared key"
+      }
+    },
     "clusterName": {
       "type": "string",
       "minLength": 3,
@@ -74,7 +92,7 @@
       "type": "string",
       "defaultValue": "IaaSCN-",
       "minLength": 1,
-      "maxLength": 12,      
+      "maxLength": 12,
       "metadata": {
         "description": "The name prefix of the compute nodes. It must be no more than 12 characters, begin with a letter, and contain only letters, numbers and hyphens. For example, if 'IaaSCN-' is specified, the compute node names will be 'IaaSCN-000', 'IaaSCN-001', ..."
       }
@@ -83,7 +101,7 @@
       "type": "int",
       "defaultValue": 2,
       "minValue": 1,
-      "maxValue": 500,      
+      "maxValue": 500,
       "metadata": {
         "description": "The number of the compute nodes"
       }
@@ -174,7 +192,9 @@
     "virtualNetworkName": "[concat(parameters('clusterName'), 'VNet')]",
     "storageAccountNamePrefix": "[toLower(concat('hpc', uniqueString(resourceGroup().id, toLower(parameters('clusterName')))))]",
     "storageAccountType": "Standard_LRS",
+    "hnPublicDns": "[concat(parameters('clusterName'), '-hn')]",
     "publicIPAddressName": "[concat(parameters('clusterName'), '-PublicIP-HN')]",
+    "gatewayPublicIPAddressName": "[concat(parameters('clusterName'), '-PublicIP-VPN')]",
     "computeNodeImageOsPlatform": "Windows",
     "computeNodeImages": {
       "ComputeNode": {
@@ -189,7 +209,7 @@
       }
     },
     "currentComputeNodeImage": "[variables('computeNodeImages')[parameters('computeNodeImage')]]",
-    "artifactsBaseUrl": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/create-hpc-cluster"
+    "artifactsBaseUrl": "https://raw.githubusercontent.com/rescale/azure-quickstart-templates/master/vpn-hpc-cluster"
   },
   "resources": [
     {
@@ -203,6 +223,15 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
+          "localGatewayIpAddress": {
+            "value": "[parameters('localGatewayIpAddress')]"
+          },
+          "localAddressPrefix": {
+            "value": "[parameters('localAddressPrefix')]"
+          },
+          "sharedKey": {
+            "value": "[parameters('sharedKey')]"
+          },
           "clusterName": {
             "value": "[parameters('clusterName')]"
           },
@@ -254,6 +283,9 @@
           "publicIPName": {
             "value": "[variables('publicIPAddressName')]"
           },
+          "gatewayPublicIPName": {
+            "value": "[variables('gatewayPublicIPAddressName')]"
+          },
           "publicIPRGName": {
             "value": "[resourceGroup().name]"
           },
@@ -261,6 +293,9 @@
             "value": "new"
           },
           "publicIPDNSNameLabel": {
+            "value": "[variables('hnPublicDns')]"
+          },
+          "gatewayPublicIPDNSNameLabel": {
             "value": "[parameters('clusterName')]"
           },
           "adminUsername": {

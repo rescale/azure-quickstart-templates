@@ -2,6 +2,45 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "localGatewayName": {
+        "type": "string",
+        "defaultValue": "onPremiseGateway",
+        "metadata": {
+            "description": "Aribtary name for gateway resource representing "
+        }
+    },
+    "localGatewayIpAddress": {
+        "type": "string",
+        "metadata": {
+            "description": "Public IP of your on-premise gateway"
+        }
+    },
+    "vpnGatewayName": {
+        "type": "string",
+        "defaultValue": "vpnGateway",
+        "metadata": {
+            "description": "VPN gateway name"
+        }
+    },
+    "connectionName": {
+        "type": "string",
+        "defaultValue": "onPremiseVpnConnection",
+        "metadata": {
+            "description": "Local VPN connection name"
+        }
+    },
+    "sharedKey": {
+        "type": "securestring",
+        "metadata": {
+            "description": "IKE shared key"
+        }
+    },
+    "localAddressPrefix": {
+        "type": "string",
+        "metadata": {
+            "description": "CIDR block representing the address space of the onPremise VPN network's Subnet"
+        }
+    },
     "clusterName": {
       "type": "string",
       "metadata": {
@@ -119,7 +158,20 @@
     "publicIPName": {
       "type": "string",
       "metadata": {
-        "description": "The name of the public IP address"
+        "description": "The name of the head node public IP address"
+      }
+    },
+    "gatewayPublicIPName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the gateway public IP address"
+      }
+    },
+    "gatewaySubnetName": {
+      "type": "string",
+      "defaultValue": "GatewaySubnet",
+      "metadata": {
+        "description": "VPN gateway subnet name"
       }
     },
     "publicIPRGName": {
@@ -143,7 +195,13 @@
     "publicIPDNSNameLabel": {
       "type": "string",
       "metadata": {
-        "description": "The DNS name label of the public IP address"
+        "description": "The DNS name label of the head node public IP address"
+      }
+    },
+    "gatewayPublicIPDNSNameLabel": {
+      "type": "string",
+      "metadata": {
+        "description": "The DNS name label of the gateway public IP address"
       }
     },
     "adminUsername": {
@@ -188,9 +246,10 @@
     "storageAccountIndexWidth": "[length(string(sub(add(variables('cnStorageAccountNumber'), variables('cnStorageAccountStartIndex')), 1)))]",
     "hnStorageAccountName": "[concat(parameters('storageAccountNamePrefix'), padLeft(string(parameters('storageAccountStartIndex')), variables('storageAccountIndexWidth'), '0'))]",
     "hnStorageAccountId": "[resourceId('Microsoft.Storage/storageAccounts',variables('hnStorageAccountName'))]",
-    "addressPrefix": "10.0.0.0/16",
+    "addressPrefix": "10.2.0.0/16",
     "subnet1Name": "Subnet-1",
-    "subnet1Prefix": "10.0.0.0/22",
+    "subnet1Prefix": "10.2.0.0/22",
+    "gatewaySubnetPrefix": "10.2.200.0/29",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnet1Name'))]",
     "publicIPAddressType": "Dynamic",
@@ -240,6 +299,77 @@
         "accountType": "[parameters('storageAccountType')]"
       }
     },
+
+
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/localNetworkGateways",
+      "name": "[parameters('localGatewayName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "mode": "Incremental",
+        "localNetworkAddressSpace": {
+          "addressPrefixes": [
+            "[parameters('localAddressPrefix')]"
+          ]
+        },
+        "gatewayIpAddress": "[parameters('localGatewayIpAddress')]"
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "name": "[parameters('connectionName')]",
+      "type": "Microsoft.Network/connections",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworkGateways/', parameters('vpnGatewayName'))]",
+        "[concat('Microsoft.Network/localNetworkGateways/', parameters('localGatewayName'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "virtualNetworkGateway1": {
+          "id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('vpnGatewayName'))]"
+        },
+        "localNetworkGateway2": {
+          "id": "[resourceId('Microsoft.Network/localNetworkGateways', parameters('localGatewayName'))]"
+        },
+        "connectionType": "IPsec",
+        "routingWeight": 10,
+        "sharedKey": "[parameters('sharedKey')]"
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/virtualNetworkGateways",
+      "name": "[parameters('vpnGatewayName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
+        "Microsoft.Resources/deployments/setupClusterPublicIP"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "ipConfigurations": [
+          {
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[concat(variables('vnetID'),'/subnets/',parameters('gatewaySubnetName'))]"
+              },
+              "publicIPAddress": {
+                "id": "[reference('setupClusterPublicIP').outputs.gatewayResourceId.value]",
+              }
+            },
+            "name": "vnetGatewayConfig"
+          }
+        ],
+        "gatewayType": "Vpn",
+        "vpnType": "RouteBased",
+        "enableBgp": "false"
+      }
+    },
+
+
     {
       "apiVersion": "[variables('apiVersion')]",
       "type": "Microsoft.Network/virtualNetworks",
@@ -256,6 +386,12 @@
             "name": "[variables('subnet1Name')]",
             "properties": {
               "addressPrefix": "[variables('subnet1Prefix')]"
+            }
+          },
+          {
+            "name": "[parameters('gatewaySubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('gatewaySubnetPrefix')]"
             }
           }
         ]
@@ -289,6 +425,12 @@
           },
           "publicIPRGName": {
             "value": "[parameters('publicIpRGName')]"
+          },
+          "gatewayPublicIPAddressName": {
+            "value": "[parameters('gatewayPublicIPName')]"
+          },
+          "gatewayDomainNameLabel": {
+            "value": "[parameters('gatewayPublicIPDNSNameLabel')]"
           }
         }
       }
@@ -308,7 +450,7 @@
             "name": "IPConfig",
             "properties": {
               "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "10.0.0.4",
+              "privateIPAddress": "10.2.0.4",
               "publicIPAddress": {
                 "id": "[reference('setupClusterPublicIP').outputs.resourceId.value]"
               },
@@ -427,12 +569,18 @@
           "subnetName": {
             "value": "[variables('subnet1Name')]"
           },
+          "gatewaySubnetName": {
+            "value": "[parameters('gatewaySubnetName')]"
+          },
           "subnetRange": {
             "value": "[variables('subnet1Prefix')]"
           },
+          "gatewaySubnetRange": {
+            "value": "[variables('gatewaySubnetPrefix')]"
+          },
           "DNSServerAddress": {
             "value": [
-              "10.0.0.4",
+              "10.2.0.4",
               "8.8.8.8"
             ]
           }
@@ -553,7 +701,7 @@
             "value": "[parameters('privateDomainName')]"
           },
           "computeNodePostConfigScript": {
-            "value": "[trim(parameters('computeNodePostConfigScript'))]"          
+            "value": "[trim(parameters('computeNodePostConfigScript'))]"
           }
         }
       }

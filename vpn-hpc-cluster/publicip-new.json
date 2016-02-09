@@ -22,10 +22,17 @@
     },
     "publicIpRGName": {
       "type": "string"
+    },
+    "gatewayPublicIPAddressName": {
+      "type": "string"
+    },
+    "gatewayDomainNameLabel": {
+      "type": "string"
     }
   },
   "variables": {
-    "publicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIPAddressName'))]"
+    "publicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIPAddressName'))]",
+    "gatewayPublicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('gatewayPublicIPAddressName'))]"
   },
   "resources": [
     {
@@ -39,12 +46,28 @@
           "domainNameLabel": "[parameters('domainNameLabel')]"
         }
       }
+    },
+    {
+      "apiVersion": "[parameters('apiVersion')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[parameters('gatewayPublicIPAddressName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "publicIPAllocationMethod": "[parameters('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('gatewayDomainNameLabel')]"
+        }
+      }
     }
   ],
   "outputs": {
     "resourceId": {
       "type": "string",
       "value": "[variables('publicIpId')]"
+    },
+    "gatewayResourceId": {
+      "type": "string",
+      "value": "[variables('gatewayPublicIpId')]"
     },
     "fqdn": {
       "value": "[reference(variables('publicIpId'),providers('Microsoft.Network', 'publicIPAddresses').apiVersions[0]).dnsSettings.fqdn]",

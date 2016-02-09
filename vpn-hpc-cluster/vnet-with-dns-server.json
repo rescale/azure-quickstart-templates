@@ -33,6 +33,18 @@
         "description": "The name of the subnet created in the new VNET"
       }
     },
+    "gatewaySubnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "VPN gateway subnet name"
+      }
+    },
+    "gatewaySubnetRange": {
+      "type": "string",
+      "metadata": {
+        "description": "VPN gateway CIDR"
+      }
+    },
     "subnetRange": {
       "type": "string",
       "metadata": {
@@ -67,6 +79,12 @@
             "name": "[parameters('subnetName')]",
             "properties": {
               "addressPrefix": "[parameters('subnetRange')]"
+            }
+          },
+          {
+            "name": "[parameters('gatewaySubnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('gatewaySubnetRange')]"
             }
           }
         ]
