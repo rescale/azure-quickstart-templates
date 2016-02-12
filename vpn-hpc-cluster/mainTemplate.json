@@ -15,6 +15,19 @@
             "description": "Public IP of your on-premise gateway"
         }
     },
+    "localGatewayName2": {
+        "type": "string",
+        "defaultValue": "onPremiseGateway2",
+        "metadata": {
+            "description": "Aribtary name for gateway resource representing "
+        }
+    },
+    "localGatewayIpAddress2": {
+        "type": "string",
+        "metadata": {
+            "description": "Public IP of your on-premise gateway"
+        }
+    },
     "vpnGatewayName": {
         "type": "string",
         "defaultValue": "vpnGateway",
@@ -29,13 +42,32 @@
             "description": "Local VPN connection name"
         }
     },
+    "connectionName2": {
+        "type": "string",
+        "defaultValue": "onPremiseVpnConnection2",
+        "metadata": {
+            "description": "Local VPN connection name"
+        }
+    },
     "sharedKey": {
         "type": "securestring",
         "metadata": {
             "description": "IKE shared key"
         }
     },
+    "sharedKey2": {
+        "type": "securestring",
+        "metadata": {
+            "description": "IKE shared key"
+        }
+    },
     "localAddressPrefix": {
+        "type": "string",
+        "metadata": {
+            "description": "CIDR block representing the address space of the onPremise VPN network's Subnet"
+        }
+    },
+    "localAddressPrefix2": {
         "type": "string",
         "metadata": {
             "description": "CIDR block representing the address space of the onPremise VPN network's Subnet"
@@ -350,6 +382,45 @@
         "sharedKey": "[parameters('sharedKey')]"
       }
     },
+
+        {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/localNetworkGateways",
+      "name": "[parameters('localGatewayName2')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "mode": "Incremental",
+        "localNetworkAddressSpace": {
+          "addressPrefixes": [
+            "[parameters('localAddressPrefix2')]"
+          ]
+        },
+        "gatewayIpAddress": "[parameters('localGatewayIpAddress2')]"
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "name": "[parameters('connectionName2')]",
+      "type": "Microsoft.Network/connections",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworkGateways/', parameters('vpnGatewayName'))]",
+        "[concat('Microsoft.Network/localNetworkGateways/', parameters('localGatewayName2'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "virtualNetworkGateway1": {
+          "id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('vpnGatewayName'))]"
+        },
+        "localNetworkGateway2": {
+          "id": "[resourceId('Microsoft.Network/localNetworkGateways', parameters('localGatewayName2'))]"
+        },
+        "connectionType": "IPsec",
+        "routingWeight": 10,
+        "sharedKey": "[parameters('sharedKey2')]"
+      }
+    },
+
     {
       "apiVersion": "[variables('apiVersion')]",
       "type": "Microsoft.Network/virtualNetworkGateways",

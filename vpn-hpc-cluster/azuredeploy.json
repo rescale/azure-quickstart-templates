@@ -14,7 +14,25 @@
         "description": "Public IP of your on-premise gateway"
       }
     },
+    "localGatewayIpAddress2": {
+      "type": "string",
+      "metadata": {
+        "description": "Public IP of your on-premise gateway"
+      }
+    },
+    "localAddressPrefix2": {
+      "type": "string",
+      "metadata": {
+        "description": "Public IP of your on-premise gateway"
+      }
+    },
     "sharedKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "IKE shared key"
+      }
+    },
+    "sharedKey2": {
       "type": "securestring",
       "metadata": {
         "description": "IKE shared key"
@@ -241,8 +259,17 @@
           "localAddressPrefix": {
             "value": "[parameters('localAddressPrefix')]"
           },
+          "localGatewayIpAddress2": {
+            "value": "[parameters('localGatewayIpAddress2')]"
+          },
+          "localAddressPrefix2": {
+            "value": "[parameters('localAddressPrefix2')]"
+          },
           "sharedKey": {
             "value": "[parameters('sharedKey')]"
+          },
+          "sharedKey2": {
+            "value": "[parameters('sharedKey2')]"
           },
           "clusterName": {
             "value": "[parameters('clusterName')]"
