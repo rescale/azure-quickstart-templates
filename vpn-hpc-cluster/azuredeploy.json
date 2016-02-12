@@ -2,6 +2,12 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "artifactsBaseUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "base url"
+      }
+    },
     "localGatewayIpAddress": {
       "type": "string",
       "metadata": {
@@ -226,8 +232,7 @@
         "sku": "2012R2CNExcel"
       }
     },
-    "currentComputeNodeImage": "[variables('computeNodeImages')[parameters('computeNodeImage')]]",
-    "artifactsBaseUrl": "https://raw.githubusercontent.com/rescale/azure-quickstart-templates/master/vpn-hpc-cluster"
+    "currentComputeNodeImage": "[variables('computeNodeImages')[parameters('computeNodeImage')]]"
   },
   "resources": [
     {
@@ -237,7 +242,7 @@
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[concat(variables('artifactsBaseUrl'), '/mainTemplate.json')]",
+          "uri": "[concat(parameters('artifactsBaseUrl'), '/mainTemplate.json')]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
@@ -338,7 +343,7 @@
             "value": "[trim(parameters('computeNodePostConfigScript'))]"
           },
           "artifactsBaseUrl": {
-            "value": "[variables('artifactsBaseUrl')]"
+            "value": "[parameters('artifactsBaseUrl')]"
           }
         }
       }
