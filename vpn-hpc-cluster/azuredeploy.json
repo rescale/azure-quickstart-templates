@@ -186,6 +186,18 @@
       "metadata": {
         "description": "Optional URL of a public available PowerShell script you want to run on the compute nodes after they are configured. The script will be run as the Local System account. You can also specify arguments for the script, for example 'http://www.contoso.com/mycnpostscript.ps1 -Arg1 arg1 -Arg2 arg2'."
       }
+    },
+    "storageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Storage account name for images"
+      }
+    },
+    "osImageName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of OS image to start"
+      }
     }
   },
   "variables": {
@@ -312,6 +324,12 @@
           },
           "artifactsBaseUrl": {
             "value": "[variables('artifactsBaseUrl')]"
+          },
+          "storageAccountName": {
+            "value": "[parameters('storageAccountName')]"
+          },
+          "osImageName": {
+            "value": "[parameters('osImageName')]"
           }
         }
       }

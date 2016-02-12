@@ -236,6 +236,18 @@
         "description": "Base URL for Marketplace",
         "artifactsBaseUrl": ""
       }
+    },
+    "storageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Storage account name"
+      }
+    },
+    "osImageName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of OS image to start"
+      }
     }
   },
   "variables": {
@@ -300,7 +312,6 @@
         "accountType": "[parameters('storageAccountType')]"
       }
     },
-
 
     {
       "apiVersion": "[variables('apiVersion')]",
@@ -515,7 +526,8 @@
       "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
-        "Microsoft.Resources/deployments/setupClusterPublicIP"
+        "Microsoft.Resources/deployments/setupClusterPublicIP",
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -593,7 +605,7 @@
             "value": "[parameters('headNodeVMSize')]"
           },
           "storageAccountName": {
-            "value": "[variables('hnStorageAccountName')]"
+            "value": "[parameters('storageAccountName')]"
           },
           "nicName": {
             "value": "[variables('nicNameHN')]"
@@ -612,6 +624,9 @@
           },
           "privateDomainName": {
             "value": "[parameters('privateDomainName')]"
+          },
+          "osImageName": {
+            "value": "[parameters('osImageName')]"
           }
         }
       }
@@ -687,29 +702,12 @@
       }
     },
     {
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "[concat(parameters('storageAccountNamePrefix'), padLeft(string(copyIndex(variables('cnStorageAccountStartIndex'))), variables('storageAccountIndexWidth'), '0'))]",
-      "apiVersion": "[variables('apiVersion')]",
-      "location": "[parameters('location')]",
-      "dependsOn": [
-        "Microsoft.Resources/deployments/createHeadNode"
-      ],
-      "copy": {
-        "name": "hpcStorageAccounts",
-        "count": "[variables('cnStorageAccountNumber')]"
-      },
-      "properties": {
-        "accountType": "[parameters('storageAccountType')]"
-      }
-    },
-    {
       "apiVersion": "2015-01-01",
       "type": "Microsoft.Resources/deployments",
       "name": "[concat('create', parameters('computeNodeNamePrefix'), padLeft(string(copyIndex()), 3, '0'))]",
       "dependsOn": [
         "Microsoft.Resources/deployments/createAvailabilitySets",
-        "Microsoft.Resources/deployments/updateVNetDNS",
-        "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountNamePrefix'), padLeft(string(add(div(copyIndex(), parameters('nbrCNPerStorageAccount')), variables('cnStorageAccountStartIndex'))), variables('storageAccountIndexWidth'), '0'))]"
+        "Microsoft.Resources/deployments/updateVNetDNS"
       ],
       "copy": {
         "name": "CN",
@@ -739,9 +737,6 @@
           },
           "vmSize": {
             "value": "[parameters('computeNodeVMSize')]"
-          },
-          "storageAccountName": {
-            "value": "[concat(parameters('storageAccountNamePrefix'), padLeft(string(add(div(copyIndex(), parameters('nbrCNPerStorageAccount')), variables('cnStorageAccountStartIndex'))), variables('storageAccountIndexWidth'), '0'))]"
           },
           "imgPublisher": {
             "value": "[parameters('computeNodeImagePublisher')]"
@@ -778,6 +773,12 @@
           },
           "computeNodePostConfigScript": {
             "value": "[trim(parameters('computeNodePostConfigScript'))]"
+          },
+          "storageAccountName": {
+            "value": "[parameters('storageAccountName')]"
+          },
+          "osImageName": {
+            "value": "[parameters('osImageName')]"
           }
         }
       }

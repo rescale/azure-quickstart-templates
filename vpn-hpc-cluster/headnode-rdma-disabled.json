@@ -67,6 +67,12 @@
       "metadata": {
         "description": "The fully qualified domain name (FQDN) for the private domain forest which will be created by this template, for example 'hpc.local'."
       }
+    },
+    "osImageName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of OS image to start"
+      }
     }
   },
   "resources": [
@@ -85,16 +91,14 @@
           "adminPassword": "[parameters('adminPassword')]"
         },
         "storageProfile": {
-          "imageReference": {
-            "publisher": "MicrosoftWindowsServerHPCPack",
-            "offer": "WindowsServerHPCPack",
-            "sku": "2012R2",
-            "version": "latest"
-          },
           "osDisk": {
             "name": "osdisk",
+            "osType": "windows",
             "vhd": {
               "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/', toLower(parameters('vmName')), '-osdisk.vhd')]"
+            },
+            "image": {
+              "uri": "[concat('https://',parameters('storageAccountName'),'.blob.core.windows.net/system/Microsoft.Compute/Images/vhds/', parameters('osImageName'))]",
             },
             "caching": "ReadOnly",
             "createOption": "FromImage"
@@ -103,11 +107,11 @@
             {
               "name": "datadisk",
               "vhd": {
-                "Uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/', toLower(parameters('vmName')), '-datadisk.vhd')]"
+                "Uri": "[concat('https://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/', toLower(parameters('vmName')), '-datadisk.vhd')]"
               },
               "caching": "None",
               "createOption": "Empty",
-              "diskSizeGB": "200",
+              "diskSizeGB": "20",
               "lun": 0
             }
           ]
