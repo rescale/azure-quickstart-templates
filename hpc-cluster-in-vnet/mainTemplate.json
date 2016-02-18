@@ -281,7 +281,7 @@
     "addressPrefix": "10.1.0.0/16",
     "subnet1Name": "Subnet-1",
     "subnet1Prefix": "10.1.0.0/24",
-    "gatewaySubnetPrefix": "10.2.200.0/29",
+    "gatewaySubnetPrefix": "10.1.200.0/29",
     "vnetID": "[concat('/subscriptions/6e4a72c1-faf4-4eaf-9f0e-9725483cf795/resourceGroups/MANORVNET/providers/Microsoft.Network/virtualNetworks/',parameters('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnet1Name'))]",
     "publicIPAddressType": "Dynamic",
@@ -549,6 +549,9 @@
       "name": "[concat(parameters('clusterName'),'/configureHeadNode')]",
       "apiVersion": "[variables('apiVersion')]",
       "location": "[parameters('location')]",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/createHeadNode"
+      ],
       "properties": {
         "publisher": "Microsoft.Compute",
         "type": "CustomScriptExtension",
@@ -586,6 +589,7 @@
       "name": "[concat('create', parameters('computeNodeNamePrefix'), padLeft(string(copyIndex()), 3, '0'))]",
       "dependsOn": [
         "Microsoft.Resources/deployments/createAvailabilitySets",
+        "Microsoft.Resources/deployments/createHeadNode",
         "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountNamePrefix'), padLeft(string(add(div(copyIndex(), parameters('nbrCNPerStorageAccount')), variables('cnStorageAccountStartIndex'))), variables('storageAccountIndexWidth'), '0'))]"
       ],
       "copy": {
