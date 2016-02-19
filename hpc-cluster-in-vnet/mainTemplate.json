@@ -2,77 +2,6 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "localGatewayName": {
-        "type": "string",
-        "defaultValue": "onPremiseGateway",
-        "metadata": {
-            "description": "Aribtary name for gateway resource representing "
-        }
-    },
-    "localGatewayIpAddress": {
-        "type": "string",
-        "metadata": {
-            "description": "Public IP of your on-premise gateway"
-        }
-    },
-    "localGatewayName2": {
-        "type": "string",
-        "defaultValue": "onPremiseGateway2",
-        "metadata": {
-            "description": "Aribtary name for gateway resource representing "
-        }
-    },
-    "localGatewayIpAddress2": {
-        "type": "string",
-        "metadata": {
-            "description": "Public IP of your on-premise gateway"
-        }
-    },
-    "vpnGatewayName": {
-        "type": "string",
-        "defaultValue": "vpnGateway",
-        "metadata": {
-            "description": "VPN gateway name"
-        }
-    },
-    "connectionName": {
-        "type": "string",
-        "defaultValue": "onPremiseVpnConnection",
-        "metadata": {
-            "description": "Local VPN connection name"
-        }
-    },
-    "connectionName2": {
-        "type": "string",
-        "defaultValue": "onPremiseVpnConnection2",
-        "metadata": {
-            "description": "Local VPN connection name"
-        }
-    },
-    "sharedKey": {
-        "type": "securestring",
-        "metadata": {
-            "description": "IKE shared key"
-        }
-    },
-    "sharedKey2": {
-        "type": "securestring",
-        "metadata": {
-            "description": "IKE shared key"
-        }
-    },
-    "localAddressPrefix": {
-        "type": "string",
-        "metadata": {
-            "description": "CIDR block representing the address space of the onPremise VPN network's Subnet"
-        }
-    },
-    "localAddressPrefix2": {
-        "type": "string",
-        "metadata": {
-            "description": "CIDR block representing the address space of the onPremise VPN network's Subnet"
-        }
-    },
     "clusterName": {
       "type": "string",
       "metadata": {
@@ -83,6 +12,12 @@
       "type": "string",
       "metadata": {
         "description": "Location where the HPC Pack cluster will be created"
+      }
+    },
+    "virtualNetworkID": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the virtual network to be created. It must contain between 2 and 63 characters, start with a letter, end with a letter or number, and may contain only letters, numbers, underscores, periods, or hyphens."
       }
     },
     "virtualNetworkName": {
@@ -193,19 +128,6 @@
         "description": "The name of the head node public IP address"
       }
     },
-    "gatewayPublicIPName": {
-      "type": "string",
-      "metadata": {
-        "description": "The name of the gateway public IP address"
-      }
-    },
-    "gatewaySubnetName": {
-      "type": "string",
-      "defaultValue": "GatewaySubnet",
-      "metadata": {
-        "description": "VPN gateway subnet name"
-      }
-    },
     "publicIPRGName": {
       "type": "string",
       "defaultValue": "",
@@ -228,12 +150,6 @@
       "type": "string",
       "metadata": {
         "description": "The DNS name label of the head node public IP address"
-      }
-    },
-    "gatewayPublicIPDNSNameLabel": {
-      "type": "string",
-      "metadata": {
-        "description": "The DNS name label of the gateway public IP address"
       }
     },
     "adminUsername": {
@@ -282,8 +198,7 @@
     "subnet1Name": "Subnet-1",
     "subnet1Prefix": "10.1.0.0/24",
     "gatewaySubnetPrefix": "10.1.200.0/29",
-    "vnetID": "[concat('/subscriptions/6e4a72c1-faf4-4eaf-9f0e-9725483cf795/resourceGroups/MANORVNET/providers/Microsoft.Network/virtualNetworks/',parameters('virtualNetworkName'))]",
-    "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnet1Name'))]",
+    "subnetRef": "[concat(parameters('virtualNetworkID'),'/subnets/',variables('subnet1Name'))]",
     "publicIPAddressType": "Dynamic",
     "availabilitySetNamePrefix": "[concat(parameters('clusterName'), '-avset')]",
     "nbrVMPerAvailabilitySet": 50,
@@ -427,12 +342,6 @@
           },
           "publicIPRGName": {
             "value": "[parameters('publicIpRGName')]"
-          },
-          "gatewayPublicIPAddressName": {
-            "value": "[parameters('gatewayPublicIPName')]"
-          },
-          "gatewayDomainNameLabel": {
-            "value": "[parameters('gatewayPublicIPDNSNameLabel')]"
           }
         }
       }
