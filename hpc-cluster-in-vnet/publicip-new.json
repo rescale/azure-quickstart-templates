@@ -22,17 +22,10 @@
     },
     "publicIpRGName": {
       "type": "string"
-    },
-    "gatewayPublicIPAddressName": {
-      "type": "string"
-    },
-    "gatewayDomainNameLabel": {
-      "type": "string"
     }
   },
   "variables": {
-    "publicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIPAddressName'))]",
-    "gatewayPublicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('gatewayPublicIPAddressName'))]"
+    "publicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIPAddressName'))]"
   },
   "resources": [
     {
