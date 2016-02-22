@@ -115,7 +115,13 @@
       "defaultValue": "",
       "metadata": {
         "description": "Optional URL of a public available PowerShell script you want to run on the compute nodes after they are configured. You can also specify arguments for the script, for example 'http://www.consto.com/mypostscript.ps1 -Arg1 arg1 -Arg2 arg2'."
-      }    
+      }
+    },
+    "osImageName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of OS image to start"
+      }
     }
   },
   "variables":{
@@ -163,16 +169,14 @@
           "customData": "[parameters('customData')]"
         },
         "storageProfile": {
-          "imageReference": {
-            "publisher": "[parameters('imgPublisher')]",
-            "offer": "[parameters('imgOffer')]",
-            "sku": "[parameters('imgSku')]",
-            "version": "[parameters('imgVersion')]"
-          },
           "osDisk": {
             "name": "osdisk",
+            "osType": "windows",
             "vhd": {
               "uri": "[variables('osDiskUri')]"
+            },
+            "image": {
+              "uri": "[concat('https://',parameters('storageAccountName'),'.blob.core.windows.net/system/Microsoft.Compute/Images/vhds/', parameters('osImageName'))]"
             },
             "caching": "ReadOnly",
             "createOption": "FromImage"
