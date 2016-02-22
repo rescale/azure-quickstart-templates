@@ -14,10 +14,16 @@
     "publicIPAddressName": {
       "type": "string"
     },
+    "hnPublicIPAddressName": {
+      "type": "string"
+    },
     "publicIPAddressType": {
       "type": "string"
     },
     "domainNameLabel": {
+      "type": "string"
+    },
+    "hnDomainNameLabel": {
       "type": "string"
     },
     "publicIpRGName": {
@@ -25,7 +31,8 @@
     }
   },
   "variables": {
-    "publicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIPAddressName'))]"
+    "publicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIPAddressName'))]",
+    "hnPublicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('hnPublicIPAddressName'))]"
   },
   "resources": [
     {
@@ -39,12 +46,28 @@
           "domainNameLabel": "[parameters('domainNameLabel')]"
         }
       }
+    },
+    {
+      "apiVersion": "[parameters('apiVersion')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[parameters('hnPublicIPAddressName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "publicIPAllocationMethod": "[parameters('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('hnDomainNameLabel')]"
+        }
+      }
     }
   ],
   "outputs": {
     "resourceId": {
       "type": "string",
       "value": "[variables('publicIpId')]"
+    },
+    "hnResourceId": {
+      "type": "string",
+      "value": "[variables('hnPublicIpId')]"
     },
     "fqdn": {
       "value": "[reference(variables('publicIpId'),providers('Microsoft.Network', 'publicIPAddresses').apiVersions[0]).dnsSettings.fqdn]",

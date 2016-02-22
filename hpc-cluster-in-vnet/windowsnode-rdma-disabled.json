@@ -115,18 +115,75 @@
       "defaultValue": "",
       "metadata": {
         "description": "Optional URL of a public available PowerShell script you want to run on the compute nodes after they are configured. You can also specify arguments for the script, for example 'http://www.consto.com/mypostscript.ps1 -Arg1 arg1 -Arg2 arg2'."
-      }    
+      }
+    },
+    "loadBalancerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Load balancer name"
+      }
+    },
+    "sshPort": {
+      "type": "int",
+      "metadata": {
+        "description": "SSH port"
+      }
+    },
+    "rdpPort": {
+      "type": "int",
+      "metadata": {
+        "description": "RDP port"
+      }
     }
   },
   "variables":{
-    "osDiskUri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/', toLower(parameters('vmName')), '-os', uniqueString(parameters('subnetId')), '.vhd')]"
+    "osDiskUri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/', toLower(parameters('vmName')), '-os', uniqueString(parameters('subnetId')), '.vhd')]",
+    "sshNatName": "[concat(parameters('loadBalancerName'), '/', parameters('vmName'), 'SSH-VM')]",
+    "rdpNatName": "[concat(parameters('loadBalancerName'), '/', parameters('vmName'), 'RDP-VM')]",
+    "lbID": "[resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancerName'))]",
+    "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontEnd')]",
   },
   "resources": [
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/loadBalancers/inboundNatRules",
+      "name": "[variables('sshNatName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "frontendIPConfiguration": {
+          "id": "[variables('frontEndIPConfigID')]"
+        },
+        "protocol": "tcp",
+        "frontendPort": "[parameters('sshPort')]",
+        "backendPort": 22,
+        "enableFloatingIP": false
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/loadBalancers/inboundNatRules",
+      "name": "[variables('rdpNatName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "frontendIPConfiguration": {
+          "id": "[variables('frontEndIPConfigID')]"
+        },
+        "protocol": "tcp",
+        "frontendPort": "[parameters('rdpPort')]",
+        "backendPort": 3389,
+        "enableFloatingIP": false
+      }
+    },
+
     {
       "apiVersion": "[parameters('apiVersion')]",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[parameters('nicName')]",
       "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', parameters('loadBalancerName'), '/inboundNatRules/', parameters('vmName'), 'SSH-VM')]",
+        "[concat('Microsoft.Network/loadBalancers/', parameters('loadBalancerName'), '/inboundNatRules/', parameters('vmName'), 'RDP-VM')]"
+      ],
       "properties": {
         "ipConfigurations": [
           {
@@ -135,7 +192,20 @@
               "privateIPAllocationMethod": "Dynamic",
               "subnet": {
                 "id": "[parameters('subnetId')]"
-              }
+              },
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[concat(variables('lbID'), '/backendAddressPools/LoadBalancerBackend')]"
+                }
+              ],
+              "loadBalancerInboundNatRules": [
+                {
+                  "id": "[concat(variables('lbID'),'/inboundNatRules/', parameters('vmName'), 'RDP-VM')]"
+                },
+                {
+                  "id": "[concat(variables('lbID'),'/inboundNatRules/', parameters('vmName'), 'SSH-VM')]"
+                }
+              ]
             }
           }
         ]
