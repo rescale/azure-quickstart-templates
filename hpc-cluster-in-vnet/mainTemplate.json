@@ -196,6 +196,30 @@
         "description": "Base URL for Marketplace",
         "artifactsBaseUrl": ""
       }
+    },
+    "scriptStorageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Storage account for scripts",
+      }
+    },
+    "scriptStorageAccountKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Key for script storage account"
+      }
+    },
+    "customScripts": {
+      "type": "array",
+      "metadata": {
+        "description": "List of custom scripts to run after provisioning"
+      }
+    },
+    "customScriptCommand": {
+      "type": "string",
+      "metadata": {
+        "description": "Custom command line to run scripts"
+      }
     }
   },
   "variables": {
@@ -531,6 +555,28 @@
       }
     },
     {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('clusterName'), '/CustomScriptExtension')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('clusterName'), '/extensions/configureHeadNode')]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.4",
+        "settings": {
+          "fileUris": "[parameters('customScripts')]",
+          "commandToExecute": "[parameters('customScriptCommand')]"
+        },
+        "protectedSettings": {
+          "storageAccountName": "[parameters('scriptStorageAccountName')]",
+          "storageAccountKey": "[parameters('scriptStorageAccountKey')]"
+        }
+      }
+    },
+    {
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[concat(parameters('storageAccountNamePrefix'), padLeft(string(copyIndex(variables('cnStorageAccountStartIndex'))), variables('storageAccountIndexWidth'), '0'))]",
       "apiVersion": "[variables('apiVersion')]",
@@ -546,12 +592,14 @@
         "accountType": "[parameters('storageAccountType')]"
       }
     },
+
     {
       "apiVersion": "2015-01-01",
       "type": "Microsoft.Resources/deployments",
       "name": "[concat('create', parameters('computeNodeNamePrefix'), padLeft(string(copyIndex()), 3, '0'))]",
       "dependsOn": [
         "Microsoft.Resources/deployments/createAvailabilitySets",
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('clusterName'), '/extensions/configureHeadNode')]",
         "Microsoft.Resources/deployments/createHeadNode",
         "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]",
         "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountNamePrefix'), padLeft(string(add(div(copyIndex(), parameters('nbrCNPerStorageAccount')), variables('cnStorageAccountStartIndex'))), variables('storageAccountIndexWidth'), '0'))]"

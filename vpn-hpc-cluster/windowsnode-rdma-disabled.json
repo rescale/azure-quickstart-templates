@@ -115,7 +115,31 @@
       "defaultValue": "",
       "metadata": {
         "description": "Optional URL of a public available PowerShell script you want to run on the compute nodes after they are configured. You can also specify arguments for the script, for example 'http://www.consto.com/mypostscript.ps1 -Arg1 arg1 -Arg2 arg2'."
-      }    
+      }
+    },
+    "scriptStorageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Storage account for scripts",
+      }
+    },
+    "scriptStorageAccountKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Key for script storage account"
+      }
+    },
+    "customScripts": {
+      "type": "array",
+      "metadata": {
+        "description": "List of custom scripts to run after provisioning"
+      }
+    },
+    "customScriptCommand": {
+      "type": "string",
+      "metadata": {
+        "description": "Custom command line to run scripts"
+      }
     }
   },
   "variables":{
@@ -220,6 +244,28 @@
           }
         }
       ]
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmName'), '/CustomScriptExtension')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/' parameters('vmName'), '/extensions/configureComputeNode')]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.4",
+        "settings": {
+          "fileUris": "[parameters('customScripts')]",
+          "commandToExecute": "[parameters('customScriptCommand')]"
+        },
+        "protectedSettings": {
+          "storageAccountName": "[parameters('scriptStorageAccountName')]",
+          "storageAccountKey": "[parameters('scriptStorageAccountKey')]"
+        }
+      }
     }
   ]
 }
