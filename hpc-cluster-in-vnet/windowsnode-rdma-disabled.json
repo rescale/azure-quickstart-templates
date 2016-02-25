@@ -134,6 +134,30 @@
       "metadata": {
         "description": "RDP port"
       }
+    },
+    "scriptStorageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Storage account for scripts",
+      }
+    },
+    "scriptStorageAccountKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Key for script storage account"
+      }
+    },
+    "customScriptCommand": {
+      "type": "string",
+      "metadata": {
+        "description": "Key for script storage account"
+      }
+    },
+    "customScripts": {
+      "type": "array",
+      "metadata": {
+        "description": "List of custom scripts to run after provisioning"
+      }
     }
   },
   "variables":{
@@ -290,6 +314,29 @@
           }
         }
       ]
+    },
+    {
+      "apiVersion": "[parameters('apiVersion')]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmName'), '/CustomScriptExtension')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/configureComputeNode')]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.4",
+        "settings": {
+          "fileUris": "[parameters('customScripts')]",
+          "commandToExecute": "[parameters('customScriptCommand')]"
+        },
+        "protectedSettings": {
+          "storageAccountName": "[parameters('scriptStorageAccountName')]",
+          "storageAccountKey": "[parameters('scriptStorageAccountKey')]"
+        }
+      }
     }
+
   ]
 }

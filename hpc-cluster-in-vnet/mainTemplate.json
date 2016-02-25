@@ -218,7 +218,7 @@
     "customScriptCommand": {
       "type": "string",
       "metadata": {
-        "description": "Custom command line to run scripts"
+        "description": "to run custom command"
       }
     }
   },
@@ -544,31 +544,8 @@
         "type": "CustomScriptExtension",
         "typeHandlerVersion": "1.7",
         "settings": {
-          "fileUris": [
-            "[concat(parameters('artifactsBaseUrl'), '/PrepareHN.ps1')]",
-            "[concat(parameters('artifactsBaseUrl'), '/HPCHNPrepare.ps1')]"
-          ]
-        },
-        "protectedSettings": {
-          "commandToExecute": "[concat(variables('headNodeCommandStr'), ' -AzureStorageConnStr \"', variables('hnStorageConnStrPrefix'), listKeys(variables('hnStorageAccountId'),variables('apiVersion')).key1, '\" -PublicDnsName ', reference('setupClusterPublicIP').outputs.fqdn.value)]"
-        }
-      }
-    },
-    {
-      "apiVersion": "[variables('apiVersion')]",
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('clusterName'), '/CustomScriptExtension')]",
-      "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', parameters('clusterName'), '/extensions/configureHeadNode')]"
-      ],
-      "properties": {
-        "publisher": "Microsoft.Compute",
-        "type": "CustomScriptExtension",
-        "typeHandlerVersion": "1.4",
-        "settings": {
           "fileUris": "[parameters('customScripts')]",
-          "commandToExecute": "[parameters('customScriptCommand')]"
+          "commandToExecute": "[concat(variables('headNodeCommandStr'), ' -AzureStorageConnStr \"', variables('hnStorageConnStrPrefix'), listKeys(variables('hnStorageAccountId'),variables('apiVersion')).key1, '\" -PublicDnsName ', reference('setupClusterPublicIP').outputs.fqdn.value)]"
         },
         "protectedSettings": {
           "storageAccountName": "[parameters('scriptStorageAccountName')]",
@@ -680,6 +657,18 @@
           },
           "rdpPort": {
             "value": "[copyIndex(variables('baseRDPPort'))]",
+          },
+          "scriptStorageAccountName": {
+            "value": "[parameters('scriptStorageAccountName')]"
+          },
+          "scriptStorageAccountKey": {
+            "value": "[parameters('scriptStorageAccountKey')]"
+          },
+          "customScriptCommand": {
+            "value": "[parameters('customScriptCommand')]"
+          },
+          "customScripts": {
+            "value": "[parameters('customScripts')]"
           }
         }
       }
