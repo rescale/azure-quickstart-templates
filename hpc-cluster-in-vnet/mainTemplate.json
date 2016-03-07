@@ -73,6 +73,12 @@
         "description": "The VM size for the head node"
       }
     },
+    "headNodePrivateIP": {
+      "type": "string",
+      "metadata": {
+        "description": "The static private IP address that will be assigned to the head node."
+      }
+    },
     "computeNodeImageOsPlatform": {
       "type": "string",
       "allowedValues": [
@@ -405,7 +411,7 @@
             "name": "IPConfig",
             "properties": {
               "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "10.1.0.4",
+              "privateIPAddress": "[parameters('headNodePrivateIP')]",
               "publicIPAddress": {
                 "id": "[reference('setupClusterPublicIP').outputs.hnResourceId.value]"
               },
