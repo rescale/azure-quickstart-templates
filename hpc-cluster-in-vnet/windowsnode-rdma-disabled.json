@@ -329,7 +329,7 @@
         "typeHandlerVersion": "1.4",
         "settings": {
           "fileUris": "[parameters('customScripts')]",
-          "commandToExecute": "[parameters('customScriptCommand')]"
+          "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', parameters('customScriptCommand'))]"
         },
         "protectedSettings": {
           "storageAccountName": "[parameters('scriptStorageAccountName')]",
