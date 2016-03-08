@@ -239,7 +239,7 @@
     "subnetRef": "[concat(parameters('virtualNetworkID'),'/subnets/',variables('subnet1Name'))]",
     "publicIPAddressType": "Dynamic",
     "availabilitySetNamePrefix": "[concat(parameters('clusterName'), '-avset')]",
-    "nbrVMPerAvailabilitySet": 50,
+    "nbrVMPerAvailabilitySet": 100,
     "availabilitySetNumber": "[add(div(variables('computeNodeNumber'), variables('nbrVMPerAvailabilitySet')), 1)]",
     "networkSecurityGroupName": "[concat(parameters('clusterName'), '-', 'SecurityGroup')]",
     "nicNameSuffix": "[concat('-nic', uniqueString(variables('subnetRef')))]",
