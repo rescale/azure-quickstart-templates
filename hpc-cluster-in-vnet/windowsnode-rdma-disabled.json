@@ -183,21 +183,6 @@
         "enableFloatingIP": false
       }
     },
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Network/loadBalancers/inboundNatRules",
-      "name": "[variables('rdpNatName')]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "frontendIPConfiguration": {
-          "id": "[variables('frontEndIPConfigID')]"
-        },
-        "protocol": "tcp",
-        "frontendPort": "[parameters('rdpPort')]",
-        "backendPort": 3389,
-        "enableFloatingIP": false
-      }
-    },
 
     {
       "apiVersion": "[parameters('apiVersion')]",
@@ -205,8 +190,7 @@
       "name": "[parameters('nicName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Network/loadBalancers/', parameters('loadBalancerName'), '/inboundNatRules/', parameters('vmName'), 'SSH-VM')]",
-        "[concat('Microsoft.Network/loadBalancers/', parameters('loadBalancerName'), '/inboundNatRules/', parameters('vmName'), 'RDP-VM')]"
+        "[concat('Microsoft.Network/loadBalancers/', parameters('loadBalancerName'), '/inboundNatRules/', parameters('vmName'), 'SSH-VM')]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -223,9 +207,6 @@
                 }
               ],
               "loadBalancerInboundNatRules": [
-                {
-                  "id": "[concat(variables('lbID'),'/inboundNatRules/', parameters('vmName'), 'RDP-VM')]"
-                },
                 {
                   "id": "[concat(variables('lbID'),'/inboundNatRules/', parameters('vmName'), 'SSH-VM')]"
                 }
