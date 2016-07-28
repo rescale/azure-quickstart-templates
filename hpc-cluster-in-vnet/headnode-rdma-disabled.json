@@ -26,6 +26,18 @@
         "description": "The VM role size"
       }
     },
+    "imgUri": {
+      "type": "string",
+      "metadata": {
+        "description": "The url of the custom head node image"
+      }
+    },
+    "imageStorageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the storage account that contains the custom images"
+      }
+    },
     "storageAccountName": {
       "type": "string",
       "metadata": {
@@ -85,16 +97,14 @@
           "adminPassword": "[parameters('adminPassword')]"
         },
         "storageProfile": {
-          "imageReference": {
-            "publisher": "MicrosoftWindowsServerHPCPack",
-            "offer": "WindowsServerHPCPack",
-            "sku": "2012R2",
-            "version": "latest"
-          },
           "osDisk": {
             "name": "osdisk",
+            "osType": "Windows",
+            "image": {
+              "uri": "[parameters('imgUri')]"
+            },
             "vhd": {
-              "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/', toLower(parameters('vmName')), '-osdisk.vhd')]"
+              "uri": "[concat('http://', parameters('imageStorageAccountName'),'.blob.core.windows.net/vhds/', resourceGroup().name, '-', toLower(parameters('vmName')), '-osdisk.vhd')]"
             },
             "caching": "ReadOnly",
             "createOption": "FromImage"
@@ -103,7 +113,7 @@
             {
               "name": "datadisk",
               "vhd": {
-                "Uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/', toLower(parameters('vmName')), '-datadisk.vhd')]"
+                "uri": "[concat('http://',parameters('imageStorageAccountName'),'.blob.core.windows.net/vhds/', resourceGroup().name, '-', toLower(parameters('vmName')), '-datadisk.vhd')]"
               },
               "caching": "None",
               "createOption": "Empty",
