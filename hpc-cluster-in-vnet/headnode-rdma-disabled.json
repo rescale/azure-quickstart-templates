@@ -97,12 +97,14 @@
           "adminPassword": "[parameters('adminPassword')]"
         },
         "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServerHPCPack",
+            "offer": "WindowsServerHPCPack",
+            "sku": "2012R2",
+            "version": "latest"
+          },
           "osDisk": {
             "name": "osdisk",
-            "osType": "Windows",
-            "image": {
-              "uri": "[parameters('imgUri')]"
-            },
             "vhd": {
               "uri": "[concat('http://', parameters('imageStorageAccountName'),'.blob.core.windows.net/vhds/', resourceGroup().name, '-', toLower(parameters('vmName')), '-osdisk.vhd')]"
             },

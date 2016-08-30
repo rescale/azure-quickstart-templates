@@ -220,12 +220,14 @@
           "customData": "[parameters('customData')]"
         },
         "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServerHPCPack",
+            "offer": "WindowsServerHPCPack",
+            "sku": "2012R2CN",
+            "version": "latest"
+          },
           "osDisk": {
             "name": "osdisk",
-            "osType": "Windows",
-            "image": {
-              "uri": "[parameters('imgUri')]"
-            },
             "vhd": {
               "uri": "[variables('osDiskUri')]"
             },
