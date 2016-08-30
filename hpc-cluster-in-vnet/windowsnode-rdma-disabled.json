@@ -44,10 +44,28 @@
         "description": "The storage account name to store the VHD of the VM"
       }
     },
-    "imgUri": {
+    "imgPublisher": {
       "type": "string",
       "metadata": {
-        "description": "The uri of the custom compute image"
+        "description": "The publisher of the VM image"
+      }
+    },
+    "imgOffer": {
+      "type": "string",
+      "metadata": {
+        "description": "The offer of the VM image"
+      }
+    },
+    "imgSku": {
+      "type": "string",
+      "metadata": {
+        "description": "The sku of the VM image"
+      }
+    },
+    "imgVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "The version of the VM image"
       }
     },
     "adminUsername": {
@@ -120,7 +138,7 @@
     "scriptStorageAccountName": {
       "type": "string",
       "metadata": {
-        "description": "Storage account for scripts"
+        "description": "Storage account for scripts",
       }
     },
     "scriptStorageAccountKey": {
@@ -143,11 +161,11 @@
     }
   },
   "variables":{
-    "osDiskUri": "[concat('http://',parameters('scriptStorageAccountName'),'.blob.core.windows.net/vhds/', resourceGroup().name, '-', toLower(parameters('vmName')), '-os', uniqueString(parameters('subnetId')), '.vhd')]",
+    "osDiskUri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/', toLower(parameters('vmName')), '-os', uniqueString(parameters('subnetId')), '.vhd')]",
     "sshNatName": "[concat(parameters('loadBalancerName'), '/', parameters('vmName'), 'SSH-VM')]",
     "rdpNatName": "[concat(parameters('loadBalancerName'), '/', parameters('vmName'), 'RDP-VM')]",
     "lbID": "[resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancerName'))]",
-    "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontEnd')]"
+    "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontEnd')]",
   },
   "resources": [
     {
@@ -220,12 +238,14 @@
           "customData": "[parameters('customData')]"
         },
         "storageProfile": {
+          "imageReference": {
+            "publisher": "[parameters('imgPublisher')]",
+            "offer": "[parameters('imgOffer')]",
+            "sku": "[parameters('imgSku')]",
+            "version": "[parameters('imgVersion')]"
+          },
           "osDisk": {
             "name": "osdisk",
-            "osType": "Windows",
-            "image": {
-              "uri": "[parameters('imgUri')]"
-            },
             "vhd": {
               "uri": "[variables('osDiskUri')]"
             },
