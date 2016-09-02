@@ -73,12 +73,6 @@
         "description": "The VM size for the head node"
       }
     },
-    "headNodeImageUri": {
-      "type": "string",
-      "metadata": {
-        "description": "The uri of the custom head node image"
-      }
-    },
     "headNodePrivateIP": {
       "type": "string",
       "metadata": {
@@ -95,10 +89,22 @@
         "description": "The VM image OS platform for the compute nodes"
       }
     },
-    "computeNodeImageUri": {
+    "computeNodeImagePublisher": {
       "type": "string",
       "metadata": {
-        "description": "The uri of the custom compute node image"
+        "description": "The VM image publisher for the compute nodes"
+      }
+    },
+    "computeNodeImageOffer": {
+      "type": "string",
+      "metadata": {
+        "description": "The VM image offer for the compute nodes"
+      }
+    },
+    "computeNodeImageSku": {
+      "type": "string",
+      "metadata": {
+        "description": "The VM image sku for the compute nodes"
       }
     },
     "computeNodeNamePrefix": {
@@ -200,7 +206,7 @@
     "scriptStorageAccountName": {
       "type": "string",
       "metadata": {
-        "description": "Storage account for scripts"
+        "description": "Storage account for scripts",
       }
     },
     "scriptStorageAccountKey": {
@@ -269,7 +275,7 @@
     },
     "curCNOSPlatformRelated": "[variables('cnOsPlatformRelated')[parameters('computeNodeImageOsPlatform')]]",
     "computeNodeTemplateUrl": "[concat(parameters('artifactsBaseUrl'), '/', variables('curCNOSPlatformRelated').template)]",
-    "computeNodeCustomData": "[base64(concat('HPCClusterName=', parameters('clusterName'), '\r\nImageCategory=public\r\nImageName=Custom', '\r\nVMSize=', parameters('computeNodeVMSize')))]",
+    "computeNodeCustomData": "[base64(concat('HPCClusterName=', parameters('clusterName'), '\r\nImageCategory=public\r\nImageName=', parameters('computeNodeImageOffer'), '-', parameters('computeNodeImageSku'), '\r\nVMSize=', parameters('computeNodeVMSize')))]",
     "adminBase64Password": "[base64(parameters('adminPassword'))]",
     "iaasInfoArg": "[concat('-SubscriptionId ', subscription().subscriptionId, ' -VNet ', parameters('virtualNetworkName'), ' -Subnet ', variables('subnet1Name'), ' -Location \"', parameters('location'), '\"')]",
     "headNodeCommandStr": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File PrepareHN.ps1 -DomainFQDN ', parameters('privateDomainName'), ' -AdminUserName ', parameters('adminUsername'), ' -AdminBase64Password \"', variables('adminBase64Password'), '\" -CNSize ', parameters('computeNodeVMSize'), ' -PostConfigScript \"', base64(trim(parameters('headNodePostConfigScript'))), '\" ', variables('iaasInfoArg'))]",
@@ -504,12 +510,6 @@
           "vmSize": {
             "value": "[parameters('headNodeVMSize')]"
           },
-          "imgUri": {
-            "value": "[parameters('headNodeImageUri')]"
-          },
-          "imageStorageAccountName": {
-            "value": "[parameters('scriptStorageAccountName')]"
-          },
           "storageAccountName": {
             "value": "[variables('hnStorageAccountName')]"
           },
@@ -616,8 +616,17 @@
           "storageAccountName": {
             "value": "[concat(parameters('storageAccountNamePrefix'), padLeft(string(add(div(copyIndex(), parameters('nbrCNPerStorageAccount')), variables('cnStorageAccountStartIndex'))), variables('storageAccountIndexWidth'), '0'))]"
           },
-          "imgUri": {
-            "value": "[parameters('computeNodeImageUri')]"
+          "imgPublisher": {
+            "value": "[parameters('computeNodeImagePublisher')]"
+          },
+          "imgOffer": {
+            "value": "[parameters('computeNodeImageOffer')]"
+          },
+          "imgSku": {
+            "value": "[parameters('computeNodeImageSku')]"
+          },
+          "imgVersion": {
+            "value": "latest"
           },
           "adminUsername": {
             "value": "[parameters('adminUsername')]"
@@ -647,10 +656,10 @@
             "value": "[variables('loadBalancerName')]"
           },
           "sshPort": {
-            "value": "[copyIndex(variables('baseSSHPort'))]"
+            "value": "[copyIndex(variables('baseSSHPort'))]",
           },
           "rdpPort": {
-            "value": "[copyIndex(variables('baseRDPPort'))]"
+            "value": "[copyIndex(variables('baseRDPPort'))]",
           },
           "scriptStorageAccountName": {
             "value": "[parameters('scriptStorageAccountName')]"
